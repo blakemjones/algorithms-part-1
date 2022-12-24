@@ -53,18 +53,27 @@ public class Deque<Item>  implements Iterable<Item>
             last.item = item;
             size++;
         }
-        Node newLastNode = new Node();
-        newLastNode.item = item;
-        last.previous = newLastNode;
-        newLastNode.next = last;
-        last = newLastNode;
-        size++;
+        else {
+            Node newLastNode = new Node();
+            newLastNode.item = item;
+            last.previous = newLastNode;
+            newLastNode.next = last;
+            last = newLastNode;
+            size++;
+        }
+        
     }
 
     // remove and return the item from the front
     public Item removeFirst() {
         if (this.isEmpty()) {
             throw new NoSuchElementException();
+        }
+        if (this.size == 1) {
+            Item result = this.first.item;
+            this.first = new Node(); this.last = this.first;
+            size--;
+            return result;
         }
         Item result = this.first.item;
         Node newFirst = this.first.previous;
@@ -79,6 +88,12 @@ public class Deque<Item>  implements Iterable<Item>
     public Item removeLast() {
         if (this.isEmpty()) {
             throw new NoSuchElementException();
+        }
+        if (this.size == 1) {
+            Item result = this.last.item;
+            this.last = new Node(); this.first = this.last;
+            size--;
+            return result;
         }
         Item result = this.last.item;
         Node newLast = this.last.next;
@@ -153,5 +168,13 @@ public class Deque<Item>  implements Iterable<Item>
 
         boolean test4Result = test.size == 2 && test.first.item == "test1";
         StdOut.println(test4 + test4Result);
+
+        // TEST 5
+        Deque<Integer> deque = new Deque<>();
+        deque.addFirst(1);
+        deque.removeLast();
+        deque.addFirst(3);
+        deque.addFirst(4);
+        deque.removeLast();
     }
 }
