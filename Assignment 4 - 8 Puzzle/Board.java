@@ -75,7 +75,7 @@ public class Board {
     }
 
     // does this board equal y?
-    public boolean equals(Board y) {
+    public boolean equals(Object y) {
         if (y == null) return false;
         return this.toString().equals(y.toString());
     }
