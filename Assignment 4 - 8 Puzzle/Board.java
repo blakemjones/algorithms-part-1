@@ -47,7 +47,7 @@ public class Board {
         for (int i = 0; i < tiles.length; i++) {
             for (int j = 0; j < tiles.length; j++) {
                 int tileValue = tiles[i][j];
-                if (tileValue == 0) tileValue = 9; // blank tile should be in right-bottommost square
+                if (tileValue == 0) continue; // blank tile should be in right-bottommost square
                 if (tileValue != (i * tiles.length) + j + 1) hamming++;
             }
         }
@@ -60,7 +60,7 @@ public class Board {
         for (int i = 0; i < tiles.length; i++) {
             for (int j = 0; j < tiles.length; j++) {
                 int tileValue = tiles[i][j];
-                if (tileValue == 0) tileValue = 9; // blank tile should be in right-bottommost square
+                if (tileValue == 0) continue; // blank tile should be in right-bottommost square
                 int expectedRow = (tileValue - 1) / tiles.length;
                 int expectedCol = (tileValue - 1) % tiles.length;
                 manhattan += Math.abs(expectedRow - i) + Math.abs(expectedCol - j);
@@ -75,7 +75,8 @@ public class Board {
     }
 
     // does this board equal y?
-    public boolean equals(Object y) {
+    public boolean equals(Board y) {
+        if (y == null) return false;
         return this.toString().equals(y.toString());
     }
 
@@ -170,6 +171,10 @@ public class Board {
         int [][] manhattanTest = {{0, 2, 3},{4, 5, 6},{7, 8, 1}};
         Board manhattanTestBoard = new Board(manhattanTest);
         StdOut.println("Maximum manhattan distance: " + manhattanTestBoard.manhattan());
+
+        int [][] hammingTest = {{5, 8, 7},{1, 4, 6},{3, 0, 2}};
+        Board hammingTestBoard = new Board(hammingTest);
+        StdOut.println("Hamming distance should be 7, is actually " + hammingTestBoard.hamming());
 
         int [][] twinTest = {{1, 2, 0},{4, 5, 6},{7, 8, 3}};
         Board twinTestBoard = new Board(twinTest);
