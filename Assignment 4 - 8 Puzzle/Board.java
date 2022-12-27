@@ -83,7 +83,7 @@ public class Board {
     // all neighboring boards
     public Iterable<Board> neighbors() {
         ArrayList<Board> neighbors = new ArrayList<Board>();
-        if (blankTileRow - 1 > 0) {
+        if (blankTileRow - 1 >= 0) {
             Board neighboringBoard = new Board(tiles);
             neighboringBoard.tiles[blankTileRow][blankTileCol] = neighboringBoard.tiles[blankTileRow - 1][blankTileCol];
             neighboringBoard.tiles[blankTileRow - 1][blankTileCol] = 0;
@@ -97,7 +97,7 @@ public class Board {
             neighboringBoard.blankTileRow++;
             neighbors.add(neighboringBoard);
         }
-        if (blankTileCol - 1 > 0) {
+        if (blankTileCol - 1 >= 0) {
             Board neighboringBoard = new Board(tiles);
             neighboringBoard.tiles[blankTileRow][blankTileCol] = neighboringBoard.tiles[blankTileRow][blankTileCol - 1];
             neighboringBoard.tiles[blankTileRow][blankTileCol - 1] = 0;
@@ -183,5 +183,19 @@ public class Board {
         int [][] twin2x2Test = {{1, 0},{3, 2}};
         Board twin2x2TestBoard = new Board(twin2x2Test);
         StdOut.println(twin2x2TestBoard.twin().toString());
+
+        StdOut.println("NEIGHBORS TEST 3x3");
+        int [][] neighborsTest = {{5, 0, 4},{2, 3, 8},{7, 1, 6}};
+        Board neighborsTestBoard = new Board(neighborsTest);
+        for (Board board : neighborsTestBoard.neighbors()) {
+            StdOut.println(board.toString());
+        }
+
+        StdOut.println("NEIGHBORS TEST 2x2");
+        int [][] neighborsTest2x2 = {{1, 0},{2, 3}};
+        Board neighborsTest2x2Board = new Board(neighborsTest2x2);
+        for (Board board : neighborsTest2x2Board.neighbors()) {
+            StdOut.println(board.toString());
+        }
     }
 }
