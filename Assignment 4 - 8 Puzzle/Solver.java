@@ -1,45 +1,39 @@
 import java.util.ArrayList;
 import java.util.Comparator;
-
-import edu.princeton.cs.algs4.In;
 import edu.princeton.cs.algs4.MinPQ;
 import edu.princeton.cs.algs4.StdOut;
 
 public class Solver {
-    private Board initial;
-    private Board initialTwin;
-    private ArrayList<Board> movesToSolution;
-    private ArrayList<Board> twinMovesToSolution;
+    private SearchNode solutionNode;
     private boolean isSolvable;
+    private final Comparator<SearchNode> MANHATTAN_COMPARATOR = new ManhattanPriority();;
 
-    // find a solution to the initial board (using the A* algorithm)
     public Solver(Board initial) {
-        // initialize solver
-        this.initial = initial;
-        this.movesToSolution = new ArrayList<Board>();
-        this.initialTwin = initial.twin();
-        this.twinMovesToSolution = new ArrayList<Board>();
 
         // initialize search queues
-        Comparator<SearchNode> comparator = new ManhattanPriority();
-        MinPQ<SearchNode> queue = initializeQueue(initial, comparator);
-        MinPQ<SearchNode> twinQueue = initializeQueue(initialTwin, comparator);
+        MinPQ<SearchNode> queue = new MinPQ<SearchNode>(MANHATTAN_COMPARATOR);
+        SearchNode initialNode = new SearchNode(initial, null, 0);
+        queue.insert(initialNode);
+
+        MinPQ<SearchNode> twinQueue = new MinPQ<SearchNode>(MANHATTAN_COMPARATOR);
+        SearchNode initialTwinNode = new SearchNode(initial.twin(), null, 0);
+        twinQueue.insert(initialTwinNode);
 
         // initialize search
-        SearchNode dequeued = initializeSearch(queue, movesToSolution);
-        SearchNode twinDequeued = initializeSearch(twinQueue, twinMovesToSolution);
+        SearchNode dequeued = queue.delMin();
+        SearchNode twinDequeued = twinQueue.delMin();
 
         // A* search
         while (!dequeued.board.isGoal()) {
             // search
+            var testToDelete = dequeued.board.neighbors();
             for (Board neighbor : dequeued.board.neighbors()) {
                 if (neighbor.equals(dequeued.board)) continue; // check if neighbor is previous node
-                SearchNode newNode = new SearchNode(neighbor, dequeued.moves + 1);
+                SearchNode newNode = new SearchNode(neighbor, dequeued, dequeued.moves + 1);
                 queue.insert(newNode);
             }
             dequeued = queue.delMin(); // find board closest to solution
-            movesToSolution.add(dequeued.board);
-
+            StdOut.println(dequeued.board);
             // twin search
             if (twinDequeued.board.isGoal()) {
                 isSolvable = false;
@@ -47,25 +41,14 @@ public class Solver {
             }
             for (Board neighbor : twinDequeued.board.neighbors()) {
                 if (neighbor.equals(twinDequeued.board)) continue; // check if neighbor is previous node
-                SearchNode newNode = new SearchNode(neighbor, twinDequeued.moves + 1);
+                SearchNode newNode = new SearchNode(neighbor, twinDequeued, twinDequeued.moves + 1);
                 twinQueue.insert(newNode);
             }
             twinDequeued = twinQueue.delMin(); // find board closest to solution
         }
+
+        solutionNode = dequeued;
         isSolvable = true;
-    }
-
-    private MinPQ<SearchNode> initializeQueue(Board board, Comparator<SearchNode> comparator) {
-        MinPQ<SearchNode> queue = new MinPQ<SearchNode>(comparator);
-        SearchNode initial = new SearchNode(board, 0);
-        queue.insert(initial);
-        return queue;
-    }
-
-    private SearchNode initializeSearch(MinPQ<SearchNode> queue, ArrayList<Board> movesToSolution) {
-        SearchNode dequeued = queue.delMin();
-        movesToSolution.add(dequeued.board);
-        return dequeued;
     }
 
     private class ManhattanPriority implements Comparator<SearchNode>
@@ -85,10 +68,12 @@ public class Solver {
     {
         private Board board;
         private int moves;
+        private SearchNode previousNode;
 
-        public SearchNode(Board board, int moves) {
+        public SearchNode(Board board, SearchNode previousNode, int moves) {
             this.board = board;
             this.moves = moves;
+            this.previousNode = previousNode;
         }
     }
 
@@ -99,24 +84,48 @@ public class Solver {
 
     // min number of moves to solve initial board; -1 if unsolvable
     public int moves() {
-        return initial.hamming();
+        return solutionNode.moves;
     }
 
     // sequence of boards in a shortest solution; null if unsolvable
     public Iterable<Board> solution() {
-        return this.movesToSolution;
+        if (!isSolvable()) return null;
+
+        // reconstruct path from solution to initial
+        ArrayList<Board> movesToSolutionReversed = new ArrayList<Board>();
+        SearchNode current = solutionNode;
+        for (int i = 0; i <= solutionNode.moves + 1; i ++) {
+            if (current.previousNode == null) {
+                movesToSolutionReversed.add(current.board);
+                break;
+            } 
+            movesToSolutionReversed.add(current.board);
+            current = current.previousNode;
+        }
+
+        // reverse the order
+        ArrayList<Board> movesToSolution = new ArrayList<Board>();
+        for (int i = movesToSolutionReversed.size() - 1; i >=0; i--) {
+            Board board = movesToSolutionReversed.get(i);
+            movesToSolution.add(board);
+        }
+
+        return movesToSolution;
     }
 
     // test client (see below) 
     public static void main(String[] args) {
 
         // create initial board from file
-        In in = new In(args[0]);
-        int n = in.readInt();
-        int[][] tiles = new int[n][n];
-        for (int i = 0; i < n; i++)
-            for (int j = 0; j < n; j++)
-                tiles[i][j] = in.readInt();
+        // In in = new In(args[0]);
+        // int n = in.readInt();
+        // int[][] tiles = new int[n][n];
+        // for (int i = 0; i < n; i++)
+        //     for (int j = 0; j < n; j++)
+        //         tiles[i][j] = in.readInt();
+
+        int[][] tiles = {{6, 5, 3}, {4, 1, 7}, {0, 2, 8}};
+        
         Board initial = new Board(tiles);
     
         // solve the puzzle
