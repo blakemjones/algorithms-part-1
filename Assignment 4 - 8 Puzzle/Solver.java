@@ -6,7 +6,7 @@ import edu.princeton.cs.algs4.StdOut;
 public class Solver {
     private SearchNode solutionNode;
     private boolean isSolvable;
-    private final Comparator<SearchNode> MANHATTAN_COMPARATOR = new ManhattanPriority();;
+    private final Comparator<SearchNode> MANHATTAN_COMPARATOR = new ManhattanPriority();
 
     public Solver(Board initial) {
 
@@ -19,22 +19,23 @@ public class Solver {
         SearchNode initialTwinNode = new SearchNode(initial.twin(), null, 0);
         twinQueue.insert(initialTwinNode);
 
-        // initialize search
-        SearchNode dequeued = queue.delMin();
-        SearchNode twinDequeued = twinQueue.delMin();
-
         // A* search
-        while (!dequeued.board.isGoal()) {
+        while (!queue.isEmpty()) {
             // search
-            var testToDelete = dequeued.board.neighbors();
+            SearchNode dequeued = queue.delMin();
+            if (dequeued.board.isGoal()) {
+                solutionNode = dequeued;
+                isSolvable = true;
+                return;
+            };
             for (Board neighbor : dequeued.board.neighbors()) {
-                if (neighbor.equals(dequeued.board)) continue; // check if neighbor is previous node
+                if (dequeued.previousNode != null && neighbor.equals(dequeued.previousNode.board)) continue; // check if neighbor is a neighbor of previous node
                 SearchNode newNode = new SearchNode(neighbor, dequeued, dequeued.moves + 1);
                 queue.insert(newNode);
             }
-            dequeued = queue.delMin(); // find board closest to solution
-            StdOut.println(dequeued.board);
+            
             // twin search
+            SearchNode twinDequeued = twinQueue.delMin();
             if (twinDequeued.board.isGoal()) {
                 isSolvable = false;
                 return;
@@ -44,11 +45,7 @@ public class Solver {
                 SearchNode newNode = new SearchNode(neighbor, twinDequeued, twinDequeued.moves + 1);
                 twinQueue.insert(newNode);
             }
-            twinDequeued = twinQueue.delMin(); // find board closest to solution
         }
-
-        solutionNode = dequeued;
-        isSolvable = true;
     }
 
     private class ManhattanPriority implements Comparator<SearchNode>
@@ -84,6 +81,7 @@ public class Solver {
 
     // min number of moves to solve initial board; -1 if unsolvable
     public int moves() {
+        if (!isSolvable()) return -1;
         return solutionNode.moves;
     }
 
@@ -124,8 +122,8 @@ public class Solver {
         //     for (int j = 0; j < n; j++)
         //         tiles[i][j] = in.readInt();
 
-        int[][] tiles = {{6, 5, 3}, {4, 1, 7}, {0, 2, 8}};
-        
+        // int[][] tiles = {{6, 5, 3}, {4, 1, 7}, {0, 2, 8}};
+        int[][] tiles = {{0, 1}, {2, 3}};
         Board initial = new Board(tiles);
     
         // solve the puzzle
